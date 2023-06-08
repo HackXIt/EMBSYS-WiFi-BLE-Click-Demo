@@ -24,8 +24,8 @@
 #define QUEUE_ITEM_SIZE sizeof(uint8_t*)
 
 void StartDefaultTask(void *argument);
-void WatchdogTask(void *argument);
 void UartHandlerTask(void *argument);
+void SendATCommand(char *command);
 
 
 #endif /* INC_MYTASKS_H_ */

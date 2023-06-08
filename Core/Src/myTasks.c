@@ -8,7 +8,6 @@
 #include "myTasks.h"
 
 // Create a bunch of ugly static global data for demonstration purposes
-
 const char *xUartHandlerTaskName = "UartHandler";
 const char *newLine = "\r\n";
 
@@ -32,7 +31,22 @@ void StartDefaultTask(void *argument) {
 	xTaskCreate(UartHandlerTask, xUartHandlerTaskName, 128, NULL, osPriorityLow, &xUartTaskHandle);
 
 	// Wifi-BLE Click configuration
+	// Warning: There is no UART output for your initial configuration!
+	// The demo application is intended for interactive usage over terminal.
+	// The initial configuration is supposed to make re-occuring setup easier to quickly get into testing
+
 	// ... your initial configuration goes here ...
+
+	// Example configuration (I recommend you try these commands over serial terminal first)
+
+	// Configure Station+AP Mode
+	SendATCommand("AT+CWMODE=3");
+	// CONNECTs to YOUR-SSID with YOUR-WIFI-PWD
+	SendATCommand("AT+CWJAP=\"YOUR-SSID\",\"YOUR-WIFI-PWD\"");
+	// Allow multiple connections
+	SendATCommand("AT+CIPMUX=1");
+	// Start TCP server on Port 80
+	SendATCommand("AT+CIPSERVER=1,80");
 
 	// Activate UART interrupts and reception
 	LL_USART_EnableIT_IDLE(USART1); // Enable idle line detection (interrupt) for uart1
@@ -59,6 +73,8 @@ void UartHandlerTask(void *argument) {
 
 				if(new_pos != old_pos)  // Check if any new data is received
 				{
+					// The transmissions here are also in blocking mode, otherwises output is cutoff!
+					// If received data is BIGGER than buffer size, then output will be cutoff! (=> Increase buffer size)
 					if (new_pos > old_pos)  // If data does not wrap around the buffer
 					{
 						length = new_pos - old_pos;
@@ -91,7 +107,6 @@ void UartHandlerTask(void *argument) {
 					uart2Buffer[uart2BufferIndex++] = '\r';
 					uart2Buffer[uart2BufferIndex++] = '\n';
 					HAL_UART_Transmit_IT(&huart2, (uint8_t*)newLine, 2);
-					// For now I'll ignore that there's no newline in the echo feedback
 					// This call will be made in blocking mode, because we'll clear the buffer!
 					HAL_UART_Transmit(&huart1, uart2Buffer, uart2BufferIndex, HAL_MAX_DELAY);
 					memset(uart2Buffer, 0, BUFFER_SIZE);
@@ -117,4 +132,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	  // Restart reception with interrupt
 	  HAL_UART_Receive_IT(&huart2, &uart2_rx_char, 1);
   }
+}
+
+void SendATCommand(char *command) {
+	// The command send MUST NOT contain a newline, otherwise it might be error-prone
+	uint8_t cmd_length = strlen(command); // If your string is not NULL-Terminated this will cause errors!
+	uint8_t *buffer = (uint8_t*)pvPortMalloc(sizeof(char)*cmd_length+2);
+	strncpy((char*)buffer, command, cmd_length);
+	buffer[cmd_length] = '\r';
+	buffer[cmd_length+1] = '\n';
+	HAL_UART_Transmit(&huart1, buffer, cmd_length+2, HAL_MAX_DELAY);
+	vPortFree(buffer);
 }
