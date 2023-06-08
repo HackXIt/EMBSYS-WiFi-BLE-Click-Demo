@@ -41,12 +41,12 @@ void StartDefaultTask(void *argument) {
 
 	// Configure Station+AP Mode
 	SendATCommand("AT+CWMODE=3");
-	// CONNECTs to YOUR-SSID with YOUR-WIFI-PWD
-	SendATCommand("AT+CWJAP=\"YOUR-SSID\",\"YOUR-WIFI-PWD\"");
 	// Allow multiple connections
 	SendATCommand("AT+CIPMUX=1");
 	// Start TCP server on Port 80
 	SendATCommand("AT+CIPSERVER=1,80");
+	// CONNECTs to YOUR-SSID with YOUR-WIFI-PWD
+	SendATCommand("AT+CWJAP=\"YOUR-SSID\",\"YOUR-WIFI-PWD\"");
 
 	// Activate UART interrupts and reception
 	LL_USART_EnableIT_IDLE(USART1); // Enable idle line detection (interrupt) for uart1
