@@ -25,6 +25,9 @@ uint8_t uart2_rx_char;
 // Task handles
 TaskHandle_t xUartTaskHandle = NULL;
 
+// NOTE: COPY & PASTING INTO SERIAL TERMINAL USUALLY DOES NOT WORK!
+// The serial terminal is meant for human input, since it is character by character via interrupts!
+
 void StartDefaultTask(void *argument) {
 	// Create tasks
 	//xTaskCreate(uart2Task, "Uart1Task", 128, NULL, osPriorityLow, NULL);
@@ -138,7 +141,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 void SendATCommand(char *command) {
-	// The command send MUST NOT contain a newline, otherwise it might be error-prone
+	// The command sent MUST NOT contain a newline, otherwise it might be error-prone
 	uint8_t cmd_length = strlen(command); // If your string is not NULL-Terminated this will cause errors!
 	uint8_t *buffer = (uint8_t*)pvPortMalloc(sizeof(char)*cmd_length+2);
 	strncpy((char*)buffer, command, cmd_length);
