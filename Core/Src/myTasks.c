@@ -28,31 +28,34 @@ TaskHandle_t xUartTaskHandle = NULL;
 void StartDefaultTask(void *argument) {
 	// Create tasks
 	//xTaskCreate(uart2Task, "Uart1Task", 128, NULL, osPriorityLow, NULL);
-	xTaskCreate(UartHandlerTask, xUartHandlerTaskName, 128, NULL, osPriorityLow, &xUartTaskHandle);
+	xTaskCreate(UartHandlerTask, xUartHandlerTaskName, 128, NULL, osPriorityNormal1, &xUartTaskHandle);
+
+	// Activate UART interrupts and reception
+	LL_USART_EnableIT_IDLE(USART1); // Enable idle line detection (interrupt) for uart1
+	HAL_UART_Receive_DMA(&huart1, uart1Buffer, BUFFER_SIZE);
 
 	// Wifi-BLE Click configuration
-	// Warning: There is no UART output for your initial configuration!
+	// The UART output works for the initial configuration, but I recommend to have the serial terminal open already
 	// The demo application is intended for interactive usage over terminal.
 	// The initial configuration is supposed to make re-occuring setup easier to quickly get into testing
 
 	// ... your initial configuration goes here ...
 
 	// Example configuration (I recommend you try these commands over serial terminal first)
-
 	// Configure Station+AP Mode
 	SendATCommand("AT+CWMODE=3");
+	osDelay(10);
 	// Allow multiple connections
 	SendATCommand("AT+CIPMUX=1");
+	osDelay(10);
 	// Start TCP server on Port 80
 	SendATCommand("AT+CIPSERVER=1,80");
+	osDelay(10);
 	// CONNECTs to YOUR-SSID with YOUR-WIFI-PWD
 	SendATCommand("AT+CWJAP=\"YOUR-SSID\",\"YOUR-WIFI-PWD\"");
+	osDelay(10);
 
-	// Activate UART interrupts and reception
-	LL_USART_EnableIT_IDLE(USART1); // Enable idle line detection (interrupt) for uart1
-	HAL_UART_Receive_DMA(&huart1, uart1Buffer, BUFFER_SIZE);
 	HAL_UART_Receive_IT(&huart2, &uart2_rx_char, 1);
-
 
 	osThreadExit();
 }
