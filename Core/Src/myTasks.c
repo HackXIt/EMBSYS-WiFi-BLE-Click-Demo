@@ -35,6 +35,7 @@ void StartDefaultTask(void *argument) {
 
 	// Activate UART interrupts and reception
 	LL_USART_EnableIT_IDLE(USART1); // Enable idle line detection (interrupt) for uart1
+	// NOTE: Please check stm32l4xx_it.c for the USER-CODE that handles the IDLE Line Interrupt!!
 	HAL_UART_Receive_DMA(&huart1, uart1Buffer, BUFFER_SIZE);
 
 	// Wifi-BLE Click configuration
@@ -43,6 +44,8 @@ void StartDefaultTask(void *argument) {
 	// The initial configuration is supposed to make re-occuring setup easier to quickly get into testing
 
 	// ... your initial configuration goes here ...
+	// Delays between commands are recommended, otherwise the ESP32 responds with "Busy p..."
+	// A delay of 10 microseconds usually is enough, but it depends on the command!
 
 	// Example configuration (I recommend you try these commands over serial terminal first)
 	// Configure Station+AP Mode
