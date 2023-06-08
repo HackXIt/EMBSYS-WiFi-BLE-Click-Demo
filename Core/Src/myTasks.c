@@ -8,6 +8,7 @@
 #include "myTasks.h"
 
 // Create a bunch of ugly static global data for demonstration purposes
+// I DO NOT RECOMMEND to use global variables in your actual application!!
 const char *xUartHandlerTaskName = "UartHandler";
 const char *newLine = "\r\n";
 
@@ -25,7 +26,7 @@ uint8_t uart2_rx_char;
 // Task handles
 TaskHandle_t xUartTaskHandle = NULL;
 
-// NOTE: COPY & PASTING INTO SERIAL TERMINAL USUALLY DOES NOT WORK!
+// NOTE: COPY & PASTING INTO SERIAL TERMINAL DOES NOT WORK!
 // The serial terminal is meant for human input, since it is character by character via interrupts!
 
 void StartDefaultTask(void *argument) {
@@ -42,10 +43,10 @@ void StartDefaultTask(void *argument) {
 	// The UART output works for the initial configuration, but I recommend to have the serial terminal open already
 	// The demo application is intended for interactive usage over terminal.
 	// The initial configuration is supposed to make re-occuring setup easier to quickly get into testing
-
-	// ... your initial configuration goes here ...
 	// Delays between commands are recommended, otherwise the ESP32 responds with "Busy p..."
 	// A delay of 10 microseconds usually is enough, but it depends on the command!
+
+	// ... add your initial configuration commands below ...
 
 	// Example configuration (I recommend you try these commands over serial terminal first)
 	// Configure Station+AP Mode
@@ -82,15 +83,18 @@ void UartHandlerTask(void *argument) {
 
 				if(new_pos != old_pos)  // Check if any new data is received
 				{
-					// The transmissions here are also in blocking mode, otherwises output is cutoff!
+					// The transmissions here are also in blocking mode, otherwise output is cutoff!
 					// If received data is BIGGER than buffer size, then output will be cutoff! (=> Increase buffer size)
 					if (new_pos > old_pos)  // If data does not wrap around the buffer
 					{
 						length = new_pos - old_pos;
+						// Process your data => uart1Buffer[old_pos] TO uart1Buffer[old_pos+length] == Received DATA
 						HAL_UART_Transmit(&huart2, &uart1Buffer[old_pos], length, HAL_MAX_DELAY);
 					}
 					else  // If data wraps around the buffer
 					{
+						// If you process data in here, you'll need to partially construct your data
+
 						// First transmit the data until the end of the buffer
 						length = BUFFER_SIZE - old_pos;
 						HAL_UART_Transmit(&huart2, &uart1Buffer[old_pos], length, HAL_MAX_DELAY);
@@ -130,7 +134,7 @@ void UartHandlerTask(void *argument) {
 		}
 	}
 }
-// Interrupt callbacks
+// Interrupt callback routine for UART
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART2) {
