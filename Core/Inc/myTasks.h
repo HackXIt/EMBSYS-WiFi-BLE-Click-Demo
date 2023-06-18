@@ -15,6 +15,8 @@
 #include "string.h"				// for string functions
 #include "stdbool.h"			// for boolean values
 #include "stm32l4xx_ll_usart.h" // For lowlevel usart abstraction access
+#include "printf.h"				// For 3rd-party printf library specifically for embedded systems
+#include "ATcommands.h"			// For AT-command-list and functions
 
 // Define bit masks for the two types of events
 #define UART1_IDLE_EVENT (1 << 0)
@@ -27,7 +29,7 @@
 
 void StartDefaultTask(void *argument); // Default & initial configuration task
 void UartHandlerTask(void *argument); // Task which handles the intermediate communication between UART interfaces
-void SendATCommand(char *command); // Function which transmits a provided string to UART1
+void SendATCommand(char *command, int length); // Function which transmits a provided string to UART1
 
 
 #endif /* INC_MYTASKS_H_ */

@@ -26,6 +26,8 @@ uint8_t uart2_rx_char;
 // Task handles
 TaskHandle_t xUartTaskHandle = NULL;
 
+char at_cmd_buffer[AT_CMD_BUFFER_SIZE] = {0};
+
 // NOTE: COPY & PASTING INTO SERIAL TERMINAL DOES NOT WORK!
 // The serial terminal is meant for human input, since it is character by character via interrupts!
 
@@ -49,17 +51,20 @@ void StartDefaultTask(void *argument) {
 	// ... add your initial configuration commands below ...
 
 	// Example configuration (I recommend you try these commands over serial terminal first)
+
 	// Configure Station+AP Mode
-	SendATCommand("AT+CWMODE=3");
+	at_set_command(at_cmd_buffer, SendATCommand, AT_WIFI_Set_Mode, "%u", AT_WIFI_Mixed_Mode);
 	osDelay(10);
 	// Allow multiple connections
-	SendATCommand("AT+CIPMUX=1");
+	at_set_command(at_cmd_buffer, SendATCommand, AT_IP_Set_MultiConnectionMode, "%u", AT_IP_ConnectionMode_Multiple);
 	osDelay(10);
 	// Start TCP server on Port 80
-	SendATCommand("AT+CIPSERVER=1,80");
+	at_set_command(at_cmd_buffer, SendATCommand, AT_IP_Server, "%u,%u", AT_IP_Server_Create, 80);
 	osDelay(10);
 	// CONNECTs to YOUR-SSID with YOUR-WIFI-PWD
-	SendATCommand("AT+CWJAP=\"YOUR-SSID\",\"YOUR-WIFI-PWD\"");
+	at_set_command(at_cmd_buffer, SendATCommand, AT_WIFI_Connect, "\"%s\",\"%s\"", "YOUR-SSID", "YOUR-WIFI-PWD");
+	osDelay(10);
+	at_execute_command(at_cmd_buffer, SendATCommand, AT_Startup);
 	osDelay(10);
 
 	HAL_UART_Receive_IT(&huart2, &uart2_rx_char, 1);
@@ -147,13 +152,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
 }
 
-void SendATCommand(char *command) {
+void SendATCommand(char *command, int length) {
+	/*
 	// The command sent MUST NOT contain a newline, otherwise it might be error-prone
 	uint8_t cmd_length = strlen(command); // If your string is not NULL-Terminated this will cause errors!
 	uint8_t *buffer = (uint8_t*)pvPortMalloc(sizeof(char)*cmd_length+2);
 	strncpy((char*)buffer, command, cmd_length);
 	buffer[cmd_length] = '\r';
 	buffer[cmd_length+1] = '\n';
-	HAL_UART_Transmit(&huart1, buffer, cmd_length+2, HAL_MAX_DELAY);
-	vPortFree(buffer);
+	*/
+	HAL_UART_Transmit(&huart1, (uint8_t*)command, length, HAL_MAX_DELAY);
+	//vPortFree(buffer);
 }
