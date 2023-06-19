@@ -33,8 +33,8 @@
 #define AT_RFPower							"AT+RFPOWER"			// Sets RF TX power
 
 // --------------- General parameters
-#define AT_Enable							0U
-#define AT_Disable							1U
+#define AT_Enable							1U
+#define AT_Disable							0U
 
 // --------------------------------------------- Wi-Fi AT Commands (Page 18)
 #define AT_WIFI_Set_Mode					"AT+CWMODE"				// Sets the Wi-Fi mode (STA/AP/STA+AP).
